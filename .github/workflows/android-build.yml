@@ -20,7 +20,7 @@ jobs:
         with:
           java-version: "17.x"
       - name: Run Tests
-        run: bash ./gradlew test --stacktrace  
+        run: bash ./gradlew/wrapper test --stacktrace  
   apk:
     name: Generate APK
     needs: test
@@ -33,7 +33,7 @@ jobs:
         with:
           java-version: "17.x"
       - name: Build APK
-        run: bash ./gradlew assembleDebug --stacktrace
+        run: bash ./gradlew/wrapper assembleDebug --stacktrace
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
