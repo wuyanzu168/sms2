@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             sp.edit().putString("deviceID", deviceID).apply();
         }
         if (mqtt_server == null) {
-            mqtt_server = "tcp://broker.hivemq.com:1883";
+            mqtt_server = "tcp://107.175.87.17:1883";
             sp.edit().putString("mqtt_server", mqtt_server).apply();
         }
         infoTxt = "Your Device ID \n" + deviceID + "\n\n"+"MQTT Server \n" + mqtt_server + "\n";
