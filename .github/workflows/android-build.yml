@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: "17.x"
+      - name: Check gradlew permissions
+        run: ls -l ./gradlew
       - name: Run Tests
         run: bash ./gradlew/wrapper test --stacktrace  
   apk:
