@@ -108,7 +108,7 @@ public class SmsListener extends BroadcastReceiver {
     }
 
 
-    public static void sendPOST(String urlPost, String from, String msg, String tipe, String msgTimestamp) {
+    public static void sendPOST(String urlPost, String from, String msg, String tipe, String msgTimestamp, String deviceID) {
         if (urlPost == null) return;
         if (from.isEmpty()) return;
         if (!urlPost.startsWith("http")) return;
@@ -118,6 +118,7 @@ public class SmsListener extends BroadcastReceiver {
                             "&message=" + URLEncoder.encode(msg, "UTF-8") +
                             "&type=" + URLEncoder.encode(tipe, "UTF-8") +
                             "&timestamp=" + URLEncoder.encode(msgTimestamp, "UTF-8")
+                         	"&deviceID=" + URLEncoder.encode(deviceID, "UTF-8")              
             );
         } catch (Exception e) {
             e.printStackTrace();
