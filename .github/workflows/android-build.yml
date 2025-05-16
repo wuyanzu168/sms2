@@ -1,9 +1,9 @@
-name: Android APK Build
+name: Android CI
 
 on:
   push:
     branches:
-      - main
+      - build
     tags:
       - 'v*'
 
@@ -11,38 +11,78 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build APK
+  test:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK
-      - name: Set up JDK
+      - name: Setup JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17.x' # Use the Java version compatible with your Gradle setup
-          distribution: 'temurin' # 推荐使用的发行版
-      # Step 3: Cache Gradle dependencies
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          java-version: "17"
+          distribution: "temurin"
 
-      # Step 4: Build APK
+      - name: Grant execute permission for Gradle Wrapper
+        run: chmod +x ./gradlew
+
+      - name: Run Tests
+        run: ./gradlew test --stacktrace
+
+  apk:
+    name: Generate APK
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Grant execute permission for Gradle Wrapper
+        run: chmod +x ./gradlew
+
       - name: Build APK
-        run: ./gradlew assembleDebug # Use `assembleRelease` for release builds
+        run: ./gradlew assembleDebug --stacktrace
 
-      # Step 5: Upload APK as artifact
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v2
         with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk # Change path if necessary
+          name: AndroidSmsGatewayMqtt
+          path: app/build/outputs/apk/debug/app-debug.apk
 
+  release:
+    name: Release APK
+    needs: apk
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK from build
+        uses: actions/download-artifact@v2
+        with:
+          name: AndroidSmsGatewayMqtt
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+
+      - name: Upload Release APK
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/debug/app-debug.apk
+          asset_name: AndroidSmsGatewayMqtt.apk
+          asset_content_type: application/zip
